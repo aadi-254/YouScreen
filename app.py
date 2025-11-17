@@ -35,32 +35,42 @@ def process_video():
         # Generate unique ID for this request
         request_id = str(uuid.uuid4())[:8]
         
-        # Download video with bot detection workarounds
+        # Download video with multiple fallback methods
         download_options = {
             'format': 'best[ext=mp4]/best',
             'outtmpl': f'{app.config["UPLOAD_FOLDER"]}/{request_id}_%(title)s.%(ext)s',
             'quiet': True,
-            'nocheckcertificate': True,
             'no_warnings': True,
-            'ignoreerrors': False,
-            'cookiefile': None,
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'ios', 'web'],
-                    'player_skip': ['webpage', 'configs'],
+                    'player_client': ['android_creator', 'ios', 'mweb'],
+                    'player_skip': ['configs', 'webpage'],
                 }
             },
-            'user_agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip',
-            'headers': {
-                'Accept-Language': 'en-US,en;q=0.9',
+            'http_headers': {
+                'User-Agent': 'com.google.android.apps.youtube.creator/23.43.101 (Linux; U; Android 13; en_US)',
             },
         }
         
-        with YoutubeDL(download_options) as ydl:
-            info = ydl.extract_info(video_url, download=True)
-            video_title = info['title']
-            video_filename = ydl.prepare_filename(info)
-            video_path = video_filename
+        try:
+            with YoutubeDL(download_options) as ydl:
+                info = ydl.extract_info(video_url, download=True)
+                video_title = info['title']
+                video_filename = ydl.prepare_filename(info)
+                video_path = video_filename
+        except Exception as e:
+            error_msg = str(e)
+            if 'Sign in to confirm' in error_msg or 'bot' in error_msg:
+                return jsonify({
+                    'error': '⚠️ YouTube bot detection active on this server.',
+                    'message': 'This hosting server IP is flagged by YouTube. Alternatives:',
+                    'solutions': [
+                        '✓ Try videos from: Vimeo, Dailymotion, Facebook, Twitter, Instagram',
+                        '✓ Use the desktop app (run.bat) instead - works perfectly!',
+                        '✓ Some YouTube videos may still work - try different ones'
+                    ]
+                }), 403
+            return jsonify({'error': f'Download error: {error_msg}'}), 500
         
         # Check if video exists
         if not os.path.exists(video_path):
