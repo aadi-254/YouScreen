@@ -35,11 +35,17 @@ def process_video():
         # Generate unique ID for this request
         request_id = str(uuid.uuid4())[:8]
         
-        # Download video
+        # Download video with bot detection workarounds
         download_options = {
             'format': 'best[ext=mp4]/best',
             'outtmpl': f'{app.config["UPLOAD_FOLDER"]}/{request_id}_%(title)s.%(ext)s',
             'quiet': True,
+            'nocheckcertificate': True,
+            'no_warnings': True,
+            'ignoreerrors': False,
+            'cookiefile': None,
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         }
         
         with YoutubeDL(download_options) as ydl:
