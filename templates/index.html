@@ -14,16 +14,17 @@
         </div>
 
         <div class="card">
-            <form id="videoForm">
+            <form id="videoForm" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="video_url">Video URL</label>
                     <input 
                         type="text" 
                         id="video_url" 
                         name="video_url" 
-                        placeholder="https://www.youtube.com/watch?v=..."
+                        placeholder="https://www.youtube.com/watch?v=... or other platforms"
                         required
                     >
+                    <small>Supports YouTube, Vimeo, Dailymotion, and 1000+ sites</small>
                 </div>
 
                 <div class="form-group">
@@ -38,6 +39,18 @@
                         required
                     >
                     <small>Extract one frame every X seconds</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="cookies_file">🍪 YouTube Cookies (Optional)</label>
+                    <input 
+                        type="file" 
+                        id="cookies_file" 
+                        name="cookies_file" 
+                        accept=".txt"
+                        class="file-input"
+                    >
+                    <small>Upload cookies.txt to bypass YouTube bot detection. <a href="https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp" target="_blank" style="color: #667eea;">How to get cookies?</a></small>
                 </div>
 
                 <button type="submit" class="btn-primary" id="submitBtn">
@@ -100,8 +113,22 @@
                     status.textContent = data.message;
                     status.className = 'status success';
                 } else {
-                    // Show error
-                    status.textContent = data.error || 'An error occurred';
+                    // Show error with solutions if available
+                    let errorHtml = data.error || 'An error occurred';
+                    if (data.solutions && data.solutions.length > 0) {
+                        errorHtml += '<br><br><strong>' + (data.message || 'Alternatives:') + '</strong><ul style="text-align: left; margin: 10px auto; max-width: 500px;">';
+                        data.solutions.forEach(sol => {
+                            errorHtml += '<li style="margin: 8px 0;">' + sol + '</li>';
+                        });
+                        errorHtml += '</ul>';
+                    } else if (data.suggestions && data.suggestions.length > 0) {
+                        errorHtml += '<br><br><strong>Suggestions:</strong><ul style="text-align: left; margin: 10px auto; max-width: 500px;">';
+                        data.suggestions.forEach(s => {
+                            errorHtml += '<li style="margin: 8px 0;">• ' + s + '</li>';
+                        });
+                        errorHtml += '</ul>';
+                    }
+                    status.innerHTML = errorHtml;
                     status.className = 'status error';
                 }
             } catch (error) {

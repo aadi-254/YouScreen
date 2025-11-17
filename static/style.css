@@ -79,6 +79,27 @@ body {
     font-size: 0.9em;
 }
 
+.file-input {
+    padding: 10px !important;
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+.file-input::-webkit-file-upload-button {
+    padding: 8px 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.file-input::-webkit-file-upload-button:hover {
+    opacity: 0.9;
+}
+
 .btn-primary, .btn-success {
     width: 100%;
     padding: 15px;

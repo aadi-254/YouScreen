@@ -23,6 +23,17 @@ def process_video():
         video_url = request.form.get('video_url')
         frame_interval = request.form.get('frame_interval', '20')
         
+        # Check if cookies file was uploaded
+        cookies_file = request.files.get('cookies_file')
+        cookies_path = None
+        
+        if cookies_file and cookies_file.filename:
+            # Save cookies file temporarily
+            request_id = str(uuid.uuid4())[:8]
+            cookies_filename = secure_filename(f'{request_id}_cookies.txt')
+            cookies_path = os.path.join(app.config['UPLOAD_FOLDER'], cookies_filename)
+            cookies_file.save(cookies_path)
+        
         # Validate inputs
         if not video_url:
             return jsonify({'error': 'Please provide a video URL'}), 400
@@ -33,7 +44,8 @@ def process_video():
         frame_interval_seconds = int(frame_interval)
         
         # Generate unique ID for this request
-        request_id = str(uuid.uuid4())[:8]
+        if not cookies_path:
+            request_id = str(uuid.uuid4())[:8]
         
         # Download video with multiple fallback methods
         download_options = {
@@ -51,6 +63,10 @@ def process_video():
                 'User-Agent': 'com.google.android.apps.youtube.creator/23.43.101 (Linux; U; Android 13; en_US)',
             },
         }
+        
+        # Add cookies if provided
+        if cookies_path:
+            download_options['cookiefile'] = cookies_path
         
         try:
             with YoutubeDL(download_options) as ydl:
@@ -114,9 +130,11 @@ def process_video():
             
             frames[0].save(pdf_path, save_all=True, append_images=frames[1:], resolution=100.0)
             
-            # Clean up video file
+            # Clean up video file and cookies
             try:
                 os.remove(video_path)
+                if cookies_path and os.path.exists(cookies_path):
+                    os.remove(cookies_path)
             except:
                 pass
             
