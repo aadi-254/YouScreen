@@ -44,8 +44,16 @@ def process_video():
             'no_warnings': True,
             'ignoreerrors': False,
             'cookiefile': None,
-            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'ios', 'web'],
+                    'player_skip': ['webpage', 'configs'],
+                }
+            },
+            'user_agent': 'com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip',
+            'headers': {
+                'Accept-Language': 'en-US,en;q=0.9',
+            },
         }
         
         with YoutubeDL(download_options) as ydl:
