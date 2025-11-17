@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video to PDF Converter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📹 YouTube Video to PDF Converter</h1>
+            <p>Download any YouTube video and convert it to a PDF with frames</p>
+        </div>
+
+        <div class="card">
+            <form id="videoForm">
+                <div class="form-group">
+                    <label for="video_url">Video URL</label>
+                    <input 
+                        type="text" 
+                        id="video_url" 
+                        name="video_url" 
+                        placeholder="https://www.youtube.com/watch?v=..."
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="frame_interval">Frame Interval (seconds)</label>
+                    <input 
+                        type="number" 
+                        id="frame_interval" 
+                        name="frame_interval" 
+                        value="20" 
+                        min="1" 
+                        max="300"
+                        required
+                    >
+                    <small>Extract one frame every X seconds</small>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <span id="btnText">Convert to PDF</span>
+                    <span id="btnLoader" class="loader hidden"></span>
+                </button>
+            </form>
+        </div>
+
+        <div id="status" class="status hidden"></div>
+
+        <div id="result" class="result hidden">
+            <div class="success-icon">✅</div>
+            <h2>PDF Created Successfully!</h2>
+            <div class="result-info">
+                <p><strong>Video:</strong> <span id="videoTitle"></span></p>
+                <p><strong>Frames Captured:</strong> <span id="framesCaptured"></span></p>
+                <p><strong>Duration:</strong> <span id="videoDuration"></span> seconds</p>
+            </div>
+            <a id="downloadBtn" class="btn-success" download>Download PDF</a>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('videoForm');
+        const status = document.getElementById('status');
+        const result = document.getElementById('result');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Reset UI
+            status.className = 'status hidden';
+            result.className = 'result hidden';
+            submitBtn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoader.classList.remove('hidden');
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Show success
+                    document.getElementById('videoTitle').textContent = data.video_title;
+                    document.getElementById('framesCaptured').textContent = data.frames_captured;
+                    document.getElementById('videoDuration').textContent = data.duration;
+                    document.getElementById('downloadBtn').href = `/download/${data.pdf_filename}`;
+                    
+                    result.classList.remove('hidden');
+                    status.textContent = data.message;
+                    status.className = 'status success';
+                } else {
+                    // Show error
+                    status.textContent = data.error || 'An error occurred';
+                    status.className = 'status error';
+                }
+            } catch (error) {
+                status.textContent = 'Network error: ' + error.message;
+                status.className = 'status error';
+            } finally {
+                submitBtn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
