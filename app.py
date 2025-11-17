@@ -49,7 +49,7 @@ def process_video():
         
         # Download video with multiple fallback methods
         download_options = {
-            'format': 'best[ext=mp4]/best',
+            'format': 'best',  # Accept any best available format
             'outtmpl': f'{app.config["UPLOAD_FOLDER"]}/{request_id}_%(title)s.%(ext)s',
             'quiet': True,
             'no_warnings': True,
